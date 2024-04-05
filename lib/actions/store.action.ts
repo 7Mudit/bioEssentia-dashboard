@@ -22,3 +22,16 @@ export async function createStore(params: createStoreParams) {
     throw err;
   }
 }
+
+export async function getStores(userId: string) {
+  try {
+    if (!userId) {
+      throw new Error("user id not present");
+    }
+    const stores = await Store.find({ userId: userId });
+    console.log(stores);
+    return JSON.stringify(stores);
+  } catch (err) {
+    console.log(err);
+  }
+}

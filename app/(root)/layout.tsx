@@ -17,7 +17,7 @@ export default async function SetupLayout({
   const store = await Store.findOne({ userId: userId });
 
   if (store) {
-    redirect(`/${store.id}`);
+    redirect(`/${store._id}`);
   }
 
   return <>{children}</>;

@@ -1,3 +1,4 @@
+import Navbar from "@/components/navbar";
 import { connectToDb } from "@/lib/mongoose";
 import Store from "@/models/store.model";
 import { auth } from "@clerk/nextjs";
@@ -24,7 +25,7 @@ export default async function DashboardLayout({
   }
   return (
     <>
-      {/* <Navbar /> */}
+      <Navbar />
       {children}
     </>
   );
