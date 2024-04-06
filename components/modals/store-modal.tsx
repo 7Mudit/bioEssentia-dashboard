@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { useStoreModal } from "@/hooks/use-store-modal";
 import { Button } from "@/components/ui/button";
+import { createStore } from "@/lib/actions/store.action";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -44,6 +45,8 @@ export const StoreModal = () => {
       setLoading(true);
       // console.log(values);
       const response = await axios.post("/api/stores", values);
+      // using server actions
+      // const response = await createStore(values);
       // console.log(response.data);
       window.location.assign(`/${response.data._id}`);
       toast.success("Created Store");

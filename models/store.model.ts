@@ -8,7 +8,7 @@ interface IStore extends Document {
   categories: Schema.Types.ObjectId[];
   products: Schema.Types.ObjectId[];
   sizes: Schema.Types.ObjectId[];
-  colors: Schema.Types.ObjectId[];
+  flavours: Schema.Types.ObjectId[];
   orders: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -21,7 +21,7 @@ const storeSchema: Schema = new Schema({
   categories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }],
   sizes: [{ type: Schema.Types.ObjectId, ref: "Size" }],
-  colors: [{ type: Schema.Types.ObjectId, ref: "Color" }],
+  flavours: [{ type: Schema.Types.ObjectId, ref: "Flavour" }],
   orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -8,7 +8,7 @@ interface IProduct extends Document {
   isFeatured: boolean;
   isArchived: boolean;
   sizeId: Schema.Types.ObjectId;
-  colorId: Schema.Types.ObjectId;
+  flavourId: Schema.Types.ObjectId;
   images: Schema.Types.ObjectId[]; // Assuming you have an Image model defined elsewhere
   orderItems: Schema.Types.ObjectId[]; // Assuming an OrderItem model
   createdAt: Date;
@@ -28,7 +28,7 @@ const productSchema = new Schema<IProduct>(
     isFeatured: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },
     sizeId: { type: Schema.Types.ObjectId, ref: "Size", required: true },
-    colorId: { type: Schema.Types.ObjectId, ref: "Color", required: true },
+    flavourId: { type: Schema.Types.ObjectId, ref: "Flavour", required: true },
     images: [{ type: Schema.Types.ObjectId, ref: "Image" }],
     orderItems: [{ type: Schema.Types.ObjectId, ref: "OrderItem" }],
   },
