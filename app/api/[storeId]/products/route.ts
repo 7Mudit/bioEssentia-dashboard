@@ -6,6 +6,7 @@ import Image from "@/models/image.model";
 import Category from "@/models/category.model";
 import Flavour from "@/models/flavour.model";
 import Size from "@/models/size.model";
+import { connectToDb } from "@/lib/mongoose";
 
 export async function POST(
   req: Request,
@@ -127,6 +128,7 @@ export async function GET(
   { params }: { params: { storeId: string } }
 ) {
   try {
+    await connectToDb();
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId") || undefined;
     const flavourId = searchParams.get("flavourId") || undefined;
@@ -148,7 +150,7 @@ export async function GET(
     const products = await Product.find(query)
       .populate("images")
       .populate("categoryId")
-      .populate("flavorId")
+      .populate("flavourId")
       .populate("sizeId")
       .sort({ createdAt: -1 });
 
