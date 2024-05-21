@@ -11,11 +11,6 @@ interface ICategory extends Document {
 
 const categorySchema = new Schema({
   storeId: { type: Schema.Types.ObjectId, ref: "Store", required: true }, // Foreign Key to Store
-  billboardId: {
-    type: Schema.Types.ObjectId,
-    ref: "Billboard",
-    required: true,
-  }, // Foreign Key to Billboard
   name: { type: String, required: true },
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }],
   createdAt: { type: Date, default: Date.now },
@@ -23,7 +18,6 @@ const categorySchema = new Schema({
 });
 
 categorySchema.index({ storeId: 1 });
-categorySchema.index({ billboardId: 1 });
 
 const Category = models.Category || model("Category", categorySchema);
 

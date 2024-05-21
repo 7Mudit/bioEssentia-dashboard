@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs";
 import Category from "@/models/category.model";
 import Store from "@/models/store.model";
-import Billboard from "@/models/billboard.model";
 
 export async function GET(
   req: Request,
@@ -13,9 +12,7 @@ export async function GET(
       return new NextResponse("Category id is required", { status: 400 });
     }
 
-    const category = await Category.findById(params.categoryId).populate(
-      "billboardId"
-    );
+    const category = await Category.findById(params.categoryId);
 
     return NextResponse.json(category);
   } catch (error) {
@@ -49,7 +46,6 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
-    // Find the category to ensure it exists and get its billboardId
     const categoryToDelete = await Category.findOne({ _id: params.categoryId });
     if (!categoryToDelete) {
       return new NextResponse("Category not found", { status: 404 });
@@ -60,11 +56,6 @@ export async function DELETE(
     // Remove the category ID from the Store document
     await Store.updateOne(
       { _id: params.storeId },
-      { $pull: { categories: categoryToDelete._id } }
-    );
-    // Optionally, if categories are also referenced in Billboards, remove the category ID from the related Billboard document
-    await Billboard.updateOne(
-      { _id: categoryToDelete.billboardId, storeId: params.storeId },
       { $pull: { categories: categoryToDelete._id } }
     );
 
@@ -84,14 +75,10 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const { name, billboardId } = body;
+    const { name } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
-    }
-
-    if (!billboardId) {
-      return new NextResponse("Billboard ID is required", { status: 400 });
     }
 
     if (!name) {
@@ -120,22 +107,11 @@ export async function PATCH(
         { status: 404 }
       );
     }
-    // If the billboard ID is being changed, handle the reference update
-    if (existingCategory.billboardId.toString() !== billboardId) {
-      // Remove category from the old billboard's categories array
-      await Billboard.findByIdAndUpdate(existingCategory.billboardId, {
-        $pull: { categories: existingCategory._id },
-      });
 
-      // Add category to the new billboard's categories array
-      await Billboard.findByIdAndUpdate(billboardId, {
-        $push: { categories: existingCategory._id },
-      });
-    }
     // Update the category
     const updatedCategory = await Category.findByIdAndUpdate(
       params.categoryId,
-      { name: name, billboardId: billboardId },
+      { name: name },
       { new: true }
     );
 

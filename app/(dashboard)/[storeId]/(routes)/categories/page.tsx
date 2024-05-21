@@ -8,14 +8,12 @@ import Category from "@/models/category.model";
 const CategoriesPage = async ({ params }: { params: { storeId: string } }) => {
   await connectToDb();
   const categories = await Category.find({ storeId: params.storeId })
-    .populate("billboardId")
     .sort({ createdAt: -1 })
     .exec();
 
   const formattedCategories: CategoryColumn[] = categories.map((item) => ({
     id: item._id,
     name: item.name,
-    billboardLabel: item.billboardId.label,
     createdAt: format(item.createdAt, "MMMM do, yyyy"),
   }));
 
