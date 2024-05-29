@@ -6,11 +6,13 @@ import "./size.model";
 import "./store.model";
 import "./order.model";
 import "./orderItem.model";
+import "./feedback.model";
 
 export { default as Product } from "./product.model";
 export { default as Size } from "./size.model";
 export { default as Flavour } from "./flavour.model";
 export { default as Image } from "./image.model";
+export { default as Feedback } from "./feedback.model";
 
 export { default as Category } from "./category.model";
 export { default as Store } from "./store.model";

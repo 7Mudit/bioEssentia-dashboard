@@ -6,6 +6,7 @@ import Category from "@/models/category.model";
 import Flavour from "@/models/flavour.model";
 import Size from "@/models/size.model";
 import Image from "@/models/image.model";
+import Feedback from "@/models/feedback.model";
 
 export async function GET(
   req: Request,
@@ -19,7 +20,8 @@ export async function GET(
       .populate("images")
       .populate("categoryId")
       .populate("sizeId")
-      .populate("flavourId");
+      .populate("flavourId")
+      .populate("feedbacks");
 
     return NextResponse.json(product);
   } catch (error) {
@@ -75,6 +77,7 @@ export async function DELETE(
     });
 
     await Image.deleteMany({ productId: product._id });
+    await Feedback.deleteMany({ _id: { $in: product.feedbacks } });
 
     return NextResponse.json("Product successfully deleted");
   } catch (error) {
@@ -89,12 +92,17 @@ export async function PATCH(
 ) {
   try {
     const { userId } = auth();
-
     const body = await req.json();
 
     const {
       name,
       price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
       categoryId,
       images,
       flavourId,
@@ -149,6 +157,12 @@ export async function PATCH(
     await Product.findByIdAndUpdate(params.productId, {
       name,
       price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
       categoryId,
       flavourId,
       sizeId,

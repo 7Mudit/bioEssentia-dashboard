@@ -14,12 +14,17 @@ export async function POST(
 ) {
   try {
     const { userId } = auth();
-
     const body = await req.json();
 
     const {
       name,
       price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
       categoryId,
       flavourId,
       sizeId,
@@ -73,24 +78,31 @@ export async function POST(
     const product = await Product.create({
       name,
       price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
       isFeatured,
       isArchived,
       categoryId,
       flavourId,
       sizeId,
       storeId: params.storeId,
-      //   images: images.map((img: any) => img.url),
     });
-    // Step 2: Create image documents with productId
+
+    // Create image documents with productId
     const imageDocs = await Promise.all(
       images.map((img: any) =>
         Image.create({
           url: img.url,
-          productId: product._id, // Set productId for each image
+          productId: product._id,
         })
       )
     );
-    // Step 3: Update the product with image IDs
+
+    // Update the product with image IDs
     await Product.findByIdAndUpdate(product._id, {
       $push: { images: { $each: imageDocs.map((doc) => doc._id) } },
     });
@@ -112,6 +124,7 @@ export async function POST(
         Size.findByIdAndUpdate(size, { $push: { products: product._id } })
       )
     );
+
     // Optionally, refetch the product to include the updated images
     const updatedProduct = await Product.findById(product._id).populate(
       "images"
@@ -138,10 +151,11 @@ export async function GET(
     if (!params.storeId) {
       return new NextResponse("Store id is required", { status: 400 });
     }
+
     let query = {
       storeId: params.storeId,
       ...(categoryId && { categoryId: categoryId }),
-      ...(flavourId && { colorId: flavourId }),
+      ...(flavourId && { flavourId: flavourId }),
       ...(sizeId && { sizeId: sizeId }),
       ...(isFeatured !== undefined && { isFeatured: isFeatured }),
       isArchived: false,

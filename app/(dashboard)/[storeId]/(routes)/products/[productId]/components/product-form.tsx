@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { Editor } from "@tinymce/tinymce-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,12 @@ const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
   price: z.coerce.number().min(1),
+  fakePrice: z.coerce.number().min(0).optional(),
+  description: z.string().optional(),
+  features: z.array(z.string()).optional(),
+  suggestedUse: z.string().optional(),
+  benefits: z.string().optional(),
+  nutritionalUse: z.string().optional(),
   categoryId: z.string().min(1),
   flavourId: z.array(z.string()).min(1),
   sizeId: z.array(z.string()).min(1),
@@ -60,6 +67,12 @@ interface IProduct {
   categoryId: string;
   name: string;
   price: number;
+  fakePrice?: number;
+  description?: string;
+  features?: string[];
+  suggestedUse?: string;
+  benefits?: string;
+  nutritionalUse?: string;
   isFeatured: boolean;
   isArchived: boolean;
   sizeId: string[];
@@ -128,11 +141,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     ? {
         ...initialData,
         price: parseFloat(String(initialData?.price)),
+        fakePrice: parseFloat(String(initialData?.fakePrice || 0)),
+        description: initialData?.description || "",
+        features: initialData?.features || [],
+        suggestedUse: initialData?.suggestedUse || "",
+        benefits: initialData?.benefits || "",
+        nutritionalUse: initialData?.nutritionalUse || "",
       }
     : {
         name: "",
         images: [],
         price: 0,
+        fakePrice: 0,
+        description: "",
+        features: [],
+        suggestedUse: "",
+        benefits: "",
+        nutritionalUse: "",
         categoryId: "",
         flavourId: [],
         sizeId: [],
@@ -179,6 +204,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setLoading(false);
       setOpen(false);
     }
+  };
+
+  const [featureInput, setFeatureInput] = useState("");
+  const addFeature = () => {
+    if (featureInput.trim()) {
+      form.setValue("features", [
+        ...(form.getValues("features") || []),
+        featureInput,
+      ]);
+      setFeatureInput("");
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    const newFeatures = (form.getValues("features") || []).filter(
+      (_, i) => i !== index
+    );
+    form.setValue("features", newFeatures);
   };
 
   return (
@@ -261,6 +304,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       type="number"
                       disabled={loading}
                       placeholder="9.99"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fakePrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fake Price</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      disabled={loading}
+                      placeholder="19.99"
                       {...field}
                     />
                   </FormControl>
@@ -430,6 +491,162 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               )}
             />
           </div>
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Editor
+                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                    value={field.value}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table paste code help wordcount",
+                      ],
+                      toolbar:
+                        "undo redo | formatselect | bold italic backcolor | \
+                        alignleft aligncenter alignright alignjustify | \
+                        bullist numlist outdent indent | removeformat | help",
+                    }}
+                    onEditorChange={(content) => field.onChange(content)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="suggestedUse"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Suggested Use</FormLabel>
+                <FormControl>
+                  <Editor
+                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                    value={field.value}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table paste code help wordcount",
+                      ],
+                      toolbar:
+                        "undo redo | formatselect | bold italic backcolor | \
+                        alignleft aligncenter alignright alignjustify | \
+                        bullist numlist outdent indent | removeformat | help",
+                    }}
+                    onEditorChange={(content) => field.onChange(content)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="benefits"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Benefits</FormLabel>
+                <FormControl>
+                  <Editor
+                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                    value={field.value}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table paste code help wordcount",
+                      ],
+                      toolbar:
+                        "undo redo | formatselect | bold italic backcolor | \
+                        alignleft aligncenter alignright alignjustify | \
+                        bullist numlist outdent indent | removeformat | help",
+                    }}
+                    onEditorChange={(content) => field.onChange(content)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="nutritionalUse"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nutritional Use</FormLabel>
+                <FormControl>
+                  <Editor
+                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                    value={field.value}
+                    init={{
+                      height: 300,
+                      menubar: false,
+                      plugins: [
+                        "advlist autolink lists link image charmap print preview anchor",
+                        "searchreplace visualblocks code fullscreen",
+                        "insertdatetime media table paste code help wordcount",
+                      ],
+                      toolbar:
+                        "undo redo | formatselect | bold italic backcolor | \
+                        alignleft aligncenter alignright alignjustify | \
+                        bullist numlist outdent indent | removeformat | help",
+                    }}
+                    onEditorChange={(content) => field.onChange(content)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="features"
+            render={() => (
+              <FormItem>
+                <FormLabel>Features</FormLabel>
+                <div className="space-y-4">
+                  {(form.watch("features") || []).map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-4">
+                      <span>{feature}</span>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeFeature(index)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex space-x-4">
+                    <Input
+                      type="text"
+                      value={featureInput}
+                      onChange={(e) => setFeatureInput(e.target.value)}
+                      placeholder="Add a feature"
+                    />
+                    <Button type="button" onClick={addFeature}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}
           </Button>
