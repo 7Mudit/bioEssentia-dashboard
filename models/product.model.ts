@@ -16,7 +16,7 @@ interface IProduct extends Document {
   sizeId: Schema.Types.ObjectId[];
   flavourId: Schema.Types.ObjectId[];
   images: Schema.Types.ObjectId[];
-  orderItems: Schema.Types.ObjectId[];
+
   feedbacks: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -45,7 +45,7 @@ const productSchema = new Schema<IProduct>(
       { type: Schema.Types.ObjectId, ref: "Flavour", required: true },
     ],
     images: [{ type: Schema.Types.ObjectId, ref: "Image" }],
-    orderItems: [{ type: Schema.Types.ObjectId, ref: "OrderItem" }],
+
     feedbacks: [{ type: Schema.Types.ObjectId, ref: "Feedback" }],
   },
   {

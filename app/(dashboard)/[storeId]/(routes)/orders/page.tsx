@@ -5,27 +5,32 @@ import { OrderClient } from "./components/client";
 import Order from "@/models/order.model";
 
 const OrdersPage = async ({ params }: { params: { storeId: string } }) => {
-  const orders = await Order.find({ storeId: params.storeId })
+  const orders = await Order.find()
     .populate({
-      path: "orderItems", // Assuming 'orderItems' is a field in Order that references OrderItem documents
-      populate: { path: "productId" }, // Further populate the 'product' within each OrderItem
+      path: "products.productId", // Assuming 'products.productId' is the reference field to Product
+      populate: { path: "storeId categoryId sizeId flavourId images" }, // Populating related fields within Product
     })
     .sort({ createdAt: -1 }); // Sorting by creation date in descending order
 
   const formattedOrders: OrderColumn[] = orders.map((item) => ({
-    id: item._id,
-    phone: item.phone,
-    address: item.address,
-    products: item.orderItems
-      .map((orderItem: any) => orderItem.productId.name)
+    id: item._id.toString(),
+    clerkId: item.clerkId,
+    products: item.products
+      .map((product: any) => {
+        const productDetails = product.productId;
+        return `${productDetails.name} (${
+          product.quantity
+        } x ${productDetails.sizeId
+          .map((size: any) => size.name)
+          .join(", ")} ${productDetails.flavourId
+          .map((flavor: any) => flavor.name)
+          .join(", ")})`;
+      })
       .join(", "),
-    totalPrice: formatter.format(
-      item.orderItems.reduce((total: any, item: any) => {
-        return total + Number(item.productId.price);
-      }, 0)
-    ),
-    isPaid: item.isPaid,
-    createdAt: format(item.createdAt, "MMMM do, yyyy"),
+    totalPrice: formatter.format(item.totalAmount),
+    status: item.status,
+    createdAt: format(new Date(item.createdAt), "MMMM do, yyyy"),
+    updatedAt: format(new Date(item.updatedAt), "MMMM do, yyyy"),
   }));
 
   return (
