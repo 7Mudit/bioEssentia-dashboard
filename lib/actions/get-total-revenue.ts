@@ -3,14 +3,14 @@ import { Order } from "@/models";
 export const getTotalRevenue = async (storeId: string) => {
   const paidOrders = await Order.find({
     storeId: storeId,
-    isPaid: true,
+    status: "Completed", // Ensure you are checking for the correct status
   }).populate({
-    path: "products",
-    populate: { path: "productId" }, // Assuming each OrderItem has a 'product' path to Product documents
+    path: "products.productId", // Correctly populate the nested productId within products array
   });
+
   const totalRevenue = paidOrders.reduce((total, order) => {
-    const orderTotal = order.orderItems.reduce((orderSum: any, item: any) => {
-      return orderSum + item.productId.price;
+    const orderTotal = order.products.reduce((orderSum: any, item: any) => {
+      return orderSum + item.productId.price * item.quantity;
     }, 0);
     return total + orderTotal;
   }, 0);

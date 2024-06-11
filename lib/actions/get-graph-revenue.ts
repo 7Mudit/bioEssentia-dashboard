@@ -10,12 +10,9 @@ export const getGraphRevenue = async (
 ): Promise<GraphData[]> => {
   const paidOrders = await Order.find({
     storeId: storeId,
-    isPaid: true,
+    status: "Completed", // Ensure you are checking for the correct status
   }).populate({
-    path: "orderItems", // Assume 'orderItems' is the field in Order schema referencing OrderItem documents
-    populate: {
-      path: "productId", // Assume 'product' is the field in OrderItem schema referencing Product documents
-    },
+    path: "products.productId", // Correctly populate the nested productId within products array
   });
 
   const monthlyRevenue: { [key: number]: number } = {};
@@ -25,8 +22,8 @@ export const getGraphRevenue = async (
     const month = order.createdAt.getMonth(); // 0 for Jan, 1 for Feb, ...
     let revenueForOrder = 0;
 
-    for (const item of order.orderItems) {
-      revenueForOrder += item.productId.price;
+    for (const item of order.products) {
+      revenueForOrder += item.productId.price * item.quantity;
     }
 
     // Adding the revenue for this order to the respective month
