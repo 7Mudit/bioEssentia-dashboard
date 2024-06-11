@@ -5,7 +5,7 @@ export const getTotalRevenue = async (storeId: string) => {
     storeId: storeId,
     isPaid: true,
   }).populate({
-    path: "orderItems", // Assuming 'orderItems' is the path in the Order schema to OrderItem documents
+    path: "products",
     populate: { path: "productId" }, // Assuming each OrderItem has a 'product' path to Product documents
   });
   const totalRevenue = paidOrders.reduce((total, order) => {
