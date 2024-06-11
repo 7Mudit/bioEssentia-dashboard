@@ -161,7 +161,7 @@ export async function GET(
       isArchived: false,
     };
 
-    const products = await Product.find(query)
+    const products = await Product.find({ storeId: params.storeId })
       .populate("images")
       .populate("categoryId")
       .populate("flavourId")
