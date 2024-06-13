@@ -8,8 +8,10 @@ import "./order.model";
 import "./feedback.model";
 import "./address.model";
 import "./user.model";
+import "./batch.model";
 
 export { default as Product } from "./product.model";
+export { default as Batch } from "./product.model";
 export { default as User } from "./user.model";
 export { default as Size } from "./size.model";
 export { default as Flavour } from "./flavour.model";
