@@ -15,6 +15,7 @@ export interface IOrder extends Document {
   createdAt: Date;
   updatedAt: Date;
   merchantTransactionId: string;
+  coupon?: Types.ObjectId; // Optional coupon reference
 }
 
 const productSchema = new Schema<IProduct>({
@@ -35,6 +36,7 @@ const orderSchema = new Schema<IOrder>(
       default: "Pending",
     },
     merchantTransactionId: { type: String, required: true },
+    coupon: { type: Schema.Types.ObjectId, ref: "Coupon" }, // Optional coupon reference
   },
   {
     timestamps: true, // Automatically create `createdAt` and `updatedAt`

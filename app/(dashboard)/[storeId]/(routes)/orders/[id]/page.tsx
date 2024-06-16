@@ -12,6 +12,10 @@ interface Order {
   createdAt: Date;
   updatedAt: Date;
   merchantTransactionId: string;
+  coupon?: {
+    code: string;
+    discountPercentage: number;
+  };
 }
 
 interface Product {
@@ -69,7 +73,17 @@ export default function OrderPage({ params }: any) {
   }
 
   const { order, user, address } = orderData;
-  console.log(order);
+
+  const subtotal = order.products.reduce(
+    (total, product) => total + product.productId.price * product.quantity,
+    0
+  );
+
+  const discountAmount = order.coupon
+    ? (subtotal * order.coupon.discountPercentage) / 100
+    : 0;
+
+  const totalAmount = subtotal - discountAmount;
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8">
@@ -95,6 +109,9 @@ export default function OrderPage({ params }: any) {
                   <p className="text-gray-500 dark:text-gray-400">
                     Flavor: {product?.flavor}
                   </p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Size: {product?.size}
+                  </p>
                   <p className="font-medium">
                     ₹{product.productId.price.toFixed(2)} per item
                   </p>
@@ -105,7 +122,7 @@ export default function OrderPage({ params }: any) {
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
               <p className="text-gray-500 dark:text-gray-400">Subtotal</p>
-              <p className="font-medium">₹{order?.totalAmount.toFixed(2)}</p>
+              <p className="font-medium">₹{subtotal.toFixed(2)}</p>
             </div>
             <div className="flex items-center justify-between">
               <p className="text-gray-500 dark:text-gray-400">Shipping</p>
@@ -115,11 +132,19 @@ export default function OrderPage({ params }: any) {
               <p className="text-gray-500 dark:text-gray-400">Tax</p>
               <p className="font-medium">₹0</p>
             </div>
+            {order.coupon && (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-500 dark:text-gray-400">
+                  Coupon Applied
+                </p>
+                <p className="font-medium">
+                  {order.coupon.code} - {order.coupon.discountPercentage}% Off
+                </p>
+              </div>
+            )}
             <div className="flex items-center justify-between border-t pt-4">
               <p className="text-lg font-medium">Total</p>
-              <p className="text-lg font-medium">
-                ₹{order?.totalAmount.toFixed(2)}
-              </p>
+              <p className="text-lg font-medium">₹{totalAmount.toFixed(2)}</p>
             </div>
           </div>
         </div>
