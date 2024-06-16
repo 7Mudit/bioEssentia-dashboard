@@ -9,6 +9,7 @@ import "./feedback.model";
 import "./address.model";
 import "./user.model";
 import "./batch.model";
+import "./coupon.model";
 
 export { default as Product } from "./product.model";
 export { default as Batch } from "./product.model";
@@ -21,3 +22,4 @@ export { default as Address } from "./address.model";
 export { default as Category } from "./category.model";
 export { default as Store } from "./store.model";
 export { default as Order } from "./order.model";
+export { default as Coupon } from "./coupon.model";
