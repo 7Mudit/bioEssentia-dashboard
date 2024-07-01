@@ -75,7 +75,7 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const { name } = body;
+    const { name, image } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -111,7 +111,7 @@ export async function PATCH(
     // Update the category
     const updatedCategory = await Category.findByIdAndUpdate(
       params.categoryId,
-      { name: name },
+      { name: name, image: image }, // Add image field
       { new: true }
     );
 

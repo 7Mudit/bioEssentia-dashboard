@@ -22,9 +22,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Heading } from "@/components/ui/heading";
 import { AlertModal } from "@/components/modals/alert-modal";
+import ImageUpload from "@/components/ui/image-upload"; // Import ImageUpload component
 
 const formSchema = z.object({
   name: z.string().min(2),
+  image: z.string().url().optional(), // Add image field
 });
 
 type CategoryFormValues = z.infer<typeof formSchema>;
@@ -34,6 +36,7 @@ interface ICategory extends Document {
   storeId: string;
   products: string[];
   name: string;
+  image?: string; // Add image field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +71,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
+      image: "", // Add image default value
     },
   });
 
@@ -142,7 +146,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 w-full"
         >
-          <div className="md:grid md:grid-cols-3 gap-8">
+          <div className="md:grid md:grid-cols-1  gap-8">
             <FormField
               control={form.control}
               name="name"
@@ -154,6 +158,24 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
                       disabled={loading}
                       placeholder="Category name"
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image</FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      value={field.value ? [field.value] : []}
+                      disabled={loading}
+                      onChange={(url) => field.onChange(url)}
+                      onRemove={() => field.onChange("")}
                     />
                   </FormControl>
                   <FormMessage />

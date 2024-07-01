@@ -12,7 +12,7 @@ export async function POST(
 
     const body = await req.json();
 
-    const { name } = body;
+    const { name, image } = body;
 
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
@@ -38,7 +38,7 @@ export async function POST(
     // Create and save the new category
     const category = new Category({
       name: name,
-
+      image: image, // Add image field
       storeId: params.storeId,
     });
     await category.save();
