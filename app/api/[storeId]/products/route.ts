@@ -152,16 +152,16 @@ export async function GET(
       return new NextResponse("Store id is required", { status: 400 });
     }
 
-    let query = {
-      storeId: params.storeId,
-      ...(categoryId && { categoryId: categoryId }),
-      ...(flavourId && { flavourId: flavourId }),
-      ...(sizeId && { sizeId: sizeId }),
-      ...(isFeatured !== undefined && { isFeatured: isFeatured }),
-      isArchived: false,
-    };
+    const query: any = { storeId: params.storeId, isArchived: false };
 
-    const products = await Product.find({ storeId: params.storeId })
+    if (categoryId) query.categoryId = categoryId;
+    if (flavourId) query.flavourId = flavourId;
+    if (sizeId) query.sizeId = sizeId;
+    if (isFeatured !== null && isFeatured !== undefined) {
+      query.isFeatured = isFeatured === "true";
+    }
+
+    const products = await Product.find(query)
       .populate("images")
       .populate("categoryId")
       .populate("flavourId")
