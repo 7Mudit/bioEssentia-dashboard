@@ -10,13 +10,14 @@ interface IStore extends Document {
   sizes: Schema.Types.ObjectId[];
   flavours: Schema.Types.ObjectId[];
   orders: Schema.Types.ObjectId[];
+  combos: Schema.Types.ObjectId[]; // Add this line for combos reference
   createdAt: Date;
   updatedAt: Date;
 }
 
 const storeSchema: Schema = new Schema({
   name: { type: String, required: true },
-  userId: { type: String, required: true }, // Consider changing to ObjectId if referencing a User collection
+  userId: { type: String, required: true },
   billboards: [{ type: Schema.Types.ObjectId, ref: "Billboard" }],
   categories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }],
@@ -25,6 +26,7 @@ const storeSchema: Schema = new Schema({
   orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  combos: [{ type: Schema.Types.ObjectId, ref: "Combo" }],
 });
 
 const Store = models.Store || model("Store", storeSchema);

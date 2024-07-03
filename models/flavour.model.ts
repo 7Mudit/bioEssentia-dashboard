@@ -4,7 +4,8 @@ interface IFlavour extends Document {
   storeId: Schema.Types.ObjectId;
   name: string;
   value: string;
-  products: Schema.Types.ObjectId[]; // Reference to Product documents
+  products?: Schema.Types.ObjectId[]; // Reference to Product documents
+  combos?: Schema.Types.ObjectId[]; // Reference to Product documents
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,7 @@ const flavourSchema = new Schema<IFlavour>(
       required: true,
     },
     products: [{ type: Schema.Types.ObjectId, ref: "Product" }], // Assuming a bidirectional relation, may need manual management
+    combos: [{ type: Schema.Types.ObjectId, ref: "Combo" }], // Assuming a bidirectional relation, may need manual management
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

@@ -4,6 +4,7 @@ interface ICategory extends Document {
   storeId: Schema.Types.ObjectId;
   billboardId: Schema.Types.ObjectId;
   products: Schema.Types.ObjectId[];
+  combos: Schema.Types.ObjectId[];
   name: string;
   image: string; // Add this line
   createdAt: Date;
@@ -14,6 +15,7 @@ const categorySchema = new Schema({
   storeId: { type: Schema.Types.ObjectId, ref: "Store", required: true }, // Foreign Key to Store
   name: { type: String, required: true },
   products: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+  combos: [{ type: Schema.Types.ObjectId, ref: "Combo" }],
   image: { type: String, required: false }, // Add this line
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

@@ -1,0 +1,174 @@
+import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs";
+import Store from "@/models/store.model";
+import Image from "@/models/image.model";
+import Category from "@/models/category.model";
+import Flavour from "@/models/flavour.model";
+import Size from "@/models/size.model";
+import { connectToDb } from "@/lib/mongoose";
+import Combo from "@/models/combo.model";
+
+export async function POST(
+  req: Request,
+  { params }: { params: { storeId: string } }
+) {
+  try {
+    const { userId } = auth();
+    const body = await req.json();
+
+    const {
+      name,
+      price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
+      categoryId,
+      flavourId,
+      sizeId,
+      images,
+      isFeatured,
+      isArchived,
+    } = body;
+
+    if (!userId) {
+      return new NextResponse("Unauthenticated", { status: 403 });
+    }
+
+    if (!name) {
+      return new NextResponse("Name is required", { status: 400 });
+    }
+
+    if (!images || !images.length) {
+      return new NextResponse("Images are required", { status: 400 });
+    }
+
+    if (!price) {
+      return new NextResponse("Price is required", { status: 400 });
+    }
+
+    if (!categoryId) {
+      return new NextResponse("Category id is required", { status: 400 });
+    }
+
+    if (!flavourId) {
+      return new NextResponse("Flavour id is required", { status: 400 });
+    }
+
+    if (!sizeId) {
+      return new NextResponse("Size id is required", { status: 400 });
+    }
+
+    if (!params.storeId) {
+      return new NextResponse("Store id is required", { status: 400 });
+    }
+
+    // Verify store ownership
+    const storeByUserId = await Store.findOne({
+      _id: params.storeId,
+      userId: userId,
+    });
+    if (!storeByUserId) {
+      return new NextResponse("Unauthorized", { status: 405 });
+    }
+
+    // Create the combo
+    const combo = await Combo.create({
+      name,
+      price,
+      fakePrice,
+      description,
+      features,
+      suggestedUse,
+      benefits,
+      nutritionalUse,
+      isFeatured,
+      isArchived,
+      categoryId,
+      flavourId,
+      sizeId,
+      storeId: params.storeId,
+    });
+
+    // Create image documents with comboId
+    const imageDocs = await Promise.all(
+      images.map((img: any) =>
+        Image.create({
+          url: img.url,
+          comboId: combo._id,
+        })
+      )
+    );
+
+    // Update the combo with image IDs
+    await Combo.findByIdAndUpdate(combo._id, {
+      $push: { images: { $each: imageDocs.map((doc) => doc._id) } },
+    });
+
+    // Push combo ID to Store, Category, Flavours, and Sizes
+    await Store.findByIdAndUpdate(params.storeId, {
+      $push: { combos: combo._id },
+    });
+    await Category.findByIdAndUpdate(categoryId, {
+      $push: { combos: combo._id },
+    });
+    await Promise.all(
+      flavourId.map((flavour: any) =>
+        Flavour.findByIdAndUpdate(flavour, { $push: { combos: combo._id } })
+      )
+    );
+    await Promise.all(
+      sizeId.map((size: any) =>
+        Size.findByIdAndUpdate(size, { $push: { combos: combo._id } })
+      )
+    );
+
+    // Optionally, refetch the combo to include the updated images
+    const updatedCombo = await Combo.findById(combo._id).populate("images");
+    return NextResponse.json(updatedCombo);
+  } catch (error) {
+    console.log("[COMBOS_POST]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: { storeId: string } }
+) {
+  try {
+    await connectToDb();
+    const { searchParams } = new URL(req.url);
+    const categoryId = searchParams.get("categoryId") || undefined;
+    const flavourId = searchParams.get("flavourId") || undefined;
+    const sizeId = searchParams.get("sizeId") || undefined;
+    const isFeatured = searchParams.get("isFeatured");
+
+    if (!params.storeId) {
+      return new NextResponse("Store id is required", { status: 400 });
+    }
+
+    const query: any = { storeId: params.storeId, isArchived: false };
+
+    if (categoryId) query.categoryId = categoryId;
+    if (flavourId) query.flavourId = flavourId;
+    if (sizeId) query.sizeId = sizeId;
+    if (isFeatured !== null && isFeatured !== undefined) {
+      query.isFeatured = isFeatured === "true";
+    }
+
+    const combos = await Combo.find(query)
+      .populate("images")
+      .populate("categoryId")
+      .populate("flavourId")
+      .populate("sizeId")
+      .sort({ createdAt: -1 });
+
+    return NextResponse.json(combos);
+  } catch (error) {
+    console.log("[COMBO_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
+}
