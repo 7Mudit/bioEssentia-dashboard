@@ -6,6 +6,7 @@ interface IFeedback extends Document {
   feedback: string;
   createdAt: Date;
   updatedAt: Date;
+  approved: boolean; // Adding the approved field
 }
 
 const feedbackSchema = new Schema<IFeedback>(
@@ -13,6 +14,7 @@ const feedbackSchema = new Schema<IFeedback>(
     userName: { type: String, required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     feedback: { type: String, required: true },
+    approved: { type: Boolean, default: false }, // Adding the approved field with a default value of false
   },
   {
     timestamps: true, // Automatically create `createdAt` and `updatedAt`
