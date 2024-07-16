@@ -16,7 +16,7 @@ interface IProduct extends Document {
   sizeId: Schema.Types.ObjectId[];
   flavourId: Schema.Types.ObjectId[];
   images: Schema.Types.ObjectId[];
-
+  blogs: Schema.Types.ObjectId[]; // Array of blog IDs
   feedbacks: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -45,11 +45,11 @@ const productSchema = new Schema<IProduct>(
       { type: Schema.Types.ObjectId, ref: "Flavour", required: true },
     ],
     images: [{ type: Schema.Types.ObjectId, ref: "Image" }],
-
+    blogs: [{ type: Schema.Types.ObjectId, ref: "BlogPost" }],
     feedbacks: [{ type: Schema.Types.ObjectId, ref: "Feedback" }],
   },
   {
-    timestamps: true, // Automatically create `createdAt` and `updatedAt`
+    timestamps: true,
   }
 );
 

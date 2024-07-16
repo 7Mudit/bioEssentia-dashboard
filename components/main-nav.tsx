@@ -65,6 +65,16 @@ export function MainNav({
       active: pathname === `/${params.storeId}/feedbacks`,
     },
     {
+      href: `/${params.storeId}/seo`,
+      label: "Seo",
+      active: pathname === `/${params.storeId}/seo`,
+    },
+    {
+      href: `/${params.storeId}/blogs`,
+      label: "Blog",
+      active: pathname === `/${params.storeId}/blogs`,
+    },
+    {
       href: `/${params.storeId}/settings`,
       label: "Settings",
       active: pathname === `/${params.storeId}/settings`,

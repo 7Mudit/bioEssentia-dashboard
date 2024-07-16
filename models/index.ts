@@ -11,7 +11,9 @@ import "./user.model";
 import "./batch.model";
 import "./coupon.model";
 import "./combo.model";
+import "./blog.model";
 
+export { default as BlogPost } from "./blog.model";
 export { default as Product } from "./product.model";
 export { default as Batch } from "./product.model";
 export { default as User } from "./user.model";
