@@ -7,6 +7,7 @@ import Flavour from "@/models/flavour.model";
 import Size from "@/models/size.model";
 import Image from "@/models/image.model";
 import Feedback from "@/models/feedback.model";
+import slugify from "slugify";
 
 export async function GET(
   req: Request,
@@ -153,10 +154,27 @@ export async function PATCH(
     if (!currentProduct) {
       return new NextResponse("Product not found", { status: 404 });
     }
+
+    // Generate slug from product name if the name is changed
+    let slug = currentProduct.slug;
+    if (name !== currentProduct.name) {
+      slug = slugify(name, { lower: true, strict: true });
+
+      // Ensure the slug is unique
+      const existingProduct = await Product.findOne({
+        slug,
+        _id: { $ne: params.productId },
+      });
+      if (existingProduct) {
+        slug = `${slug}-${Date.now()}`;
+      }
+    }
+
     // Update the product details
     await Product.findByIdAndUpdate(params.productId, {
       name,
       price,
+      slug,
       fakePrice,
       description,
       features,

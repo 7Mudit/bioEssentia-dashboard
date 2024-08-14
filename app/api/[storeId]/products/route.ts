@@ -7,6 +7,7 @@ import Category from "@/models/category.model";
 import Flavour from "@/models/flavour.model";
 import Size from "@/models/size.model";
 import { connectToDb } from "@/lib/mongoose";
+import slugify from "slugify";
 
 export async function POST(
   req: Request,
@@ -74,10 +75,19 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
+    // Generate slug from product name
+    let slug = slugify(name, { lower: true, strict: true });
+    // Ensure the slug is unique
+    const existingProduct = await Product.findOne({ slug });
+    if (existingProduct) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
     // Create the product
     const product = await Product.create({
       name,
       price,
+      slug,
       fakePrice,
       description,
       features,
