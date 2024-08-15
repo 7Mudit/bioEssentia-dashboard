@@ -2,14 +2,13 @@
 
 import * as z from "zod";
 import axios from "axios";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { Editor } from "@tinymce/tinymce-react";
-
+import Editor from "@/components/editor/TailwindEditor";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,17 +32,16 @@ import {
 } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EditorInstance, JSONContent } from "novel";
 
 const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
   price: z.coerce.number().min(1),
   fakePrice: z.coerce.number().min(0).optional(),
-  description: z.string().optional(),
   features: z.array(z.string()).optional(),
-  suggestedUse: z.string().optional(),
-  benefits: z.string().optional(),
-  nutritionalUse: z.string().optional(),
+  content: z.any().optional(),
+  contentHTML: z.string().optional(), // Add this line
   categoryId: z.string().min(1),
   flavourId: z.array(z.string()).min(1),
   sizeId: z.array(z.string()).min(1),
@@ -68,11 +66,9 @@ interface IProduct {
   name: string;
   price: number;
   fakePrice?: number;
-  description?: string;
   features?: string[];
-  suggestedUse?: string;
-  benefits?: string;
-  nutritionalUse?: string;
+  content?: JSONContent;
+  contentHTML?: string;
   isFeatured: boolean;
   isArchived: boolean;
   sizeId: string[];
@@ -130,35 +126,34 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"Saved" | "Unsaved">("Unsaved");
   const [loading, setLoading] = useState(false);
+  const editorRef = useRef<EditorInstance>(null);
 
   const title = initialData ? "Edit product" : "Create product";
   const description = initialData ? "Edit a product." : "Add a new product";
   const toastMessage = initialData ? "Product updated." : "Product created.";
   const action = initialData ? "Save changes" : "Create";
+  const [content, setContent] = useState<JSONContent | {}>(
+    initialData?.content || {}
+  );
 
   const defaultValues = initialData
     ? {
         ...initialData,
         price: parseFloat(String(initialData?.price)),
         fakePrice: parseFloat(String(initialData?.fakePrice || 0)),
-        description: initialData?.description || "",
         features: initialData?.features || [],
-        suggestedUse: initialData?.suggestedUse || "",
-        benefits: initialData?.benefits || "",
-        nutritionalUse: initialData?.nutritionalUse || "",
       }
     : {
         name: "",
         images: [],
         price: 0,
         fakePrice: 0,
-        description: "",
         features: [],
-        suggestedUse: "",
-        benefits: "",
-        nutritionalUse: "",
+        content: {},
         categoryId: "",
+        contentHTML: "", // Add this line
         flavourId: [],
         sizeId: [],
         isFeatured: false,
@@ -173,6 +168,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const onSubmit = async (data: ProductFormValues) => {
     try {
       setLoading(true);
+      const editorContent = editorRef.current?.getJSON();
+      const editorContentHTML = editorRef.current?.getHTML();
+      data.content = editorContent || content;
+      data.content = JSON.stringify(data.content);
+      data.contentHTML = editorContentHTML || "";
       if (initialData) {
         await axios.patch(
           `/api/${params.storeId}/products/${params.productId}`,
@@ -491,126 +491,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
-                    value={field.value}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview anchor",
-                        "searchreplace visualblocks code fullscreen",
-                        "insertdatetime media table paste code help wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | formatselect | bold italic backcolor | \
-                        alignleft aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help",
-                    }}
-                    onEditorChange={(content) => field.onChange(content)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="suggestedUse"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Suggested Use</FormLabel>
-                <FormControl>
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
-                    value={field.value}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview anchor",
-                        "searchreplace visualblocks code fullscreen",
-                        "insertdatetime media table paste code help wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | formatselect | bold italic backcolor | \
-                        alignleft aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help",
-                    }}
-                    onEditorChange={(content) => field.onChange(content)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="benefits"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Benefits</FormLabel>
-                <FormControl>
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
-                    value={field.value}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview anchor",
-                        "searchreplace visualblocks code fullscreen",
-                        "insertdatetime media table paste code help wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | formatselect | bold italic backcolor | \
-                        alignleft aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help",
-                    }}
-                    onEditorChange={(content) => field.onChange(content)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="nutritionalUse"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nutritional Use</FormLabel>
-                <FormControl>
-                  <Editor
-                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
-                    value={field.value}
-                    init={{
-                      height: 300,
-                      menubar: false,
-                      plugins: [
-                        "advlist autolink lists link image charmap print preview anchor",
-                        "searchreplace visualblocks code fullscreen",
-                        "insertdatetime media table paste code help wordcount",
-                      ],
-                      toolbar:
-                        "undo redo | formatselect | bold italic backcolor | \
-                        alignleft aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help",
-                    }}
-                    onEditorChange={(content) => field.onChange(content)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormItem>
+            <FormLabel>Content</FormLabel>
+            <FormControl>
+              <Editor
+                className="border-2 dark:border"
+                ref={editorRef}
+                setSaveStatus={setSaveStatus}
+                blog={content as JSONContent}
+                // onChange={handleContentChange}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
           <FormField
             control={form.control}
             name="features"

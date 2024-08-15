@@ -28,7 +28,6 @@ import {
   deleteSeoMetadataById,
 } from "@/lib/actions/seo.action";
 import mongoose from "mongoose";
-import router from "next/router";
 
 const formSchema = z.object({
   url: z.string().min(2),
@@ -40,10 +39,10 @@ const formSchema = z.object({
   ogTitle: z.string().min(2),
   ogDescription: z.string().min(2),
   ogImage: z.string().min(2),
-  seoSchema: z.string().min(2),
+  seoSchema: z.string().optional(),
   metaRobots: z.string().min(2),
   altTag: z.string().min(2),
-  schemaReview: z.string().min(2),
+  schemaReview: z.string().optional(),
   keywords: z.string().min(2),
 });
 
@@ -61,10 +60,10 @@ interface ISeo extends Document {
   ogTitle: string;
   ogDescription: string;
   ogImage: string;
-  seoSchema: string;
+  seoSchema?: string;
   metaRobots: string;
   altTag: string;
-  schemaReview: string;
+  schemaReview?: string;
   keywords: string;
 }
 
@@ -116,10 +115,7 @@ export const SeoForm: React.FC<SeoFormProps> = ({ initialData }) => {
       if (initialData) {
         await updateSeoMetadataById(initialData._id, data);
       } else {
-        await createSeoMetadata({
-          ...data,
-          storeId: storeid,
-        });
+        await createSeoMetadata({ ...data, storeId: storeid });
       }
       router.refresh();
       router.push(`/${params.storeId}/seo`);

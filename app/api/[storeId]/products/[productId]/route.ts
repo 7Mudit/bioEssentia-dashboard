@@ -99,12 +99,10 @@ export async function PATCH(
       name,
       price,
       fakePrice,
-      description,
+      content,
       features,
-      suggestedUse,
-      benefits,
-      nutritionalUse,
       categoryId,
+      contentHTML,
       images,
       flavourId,
       sizeId,
@@ -170,17 +168,20 @@ export async function PATCH(
       }
     }
 
+    // Parse the content JSON if provided
+    const parsedContent = content
+      ? JSON.parse(content)
+      : currentProduct.content;
+
     // Update the product details
     await Product.findByIdAndUpdate(params.productId, {
       name,
       price,
       slug,
       fakePrice,
-      description,
+      content: parsedContent,
+      contentHTML,
       features,
-      suggestedUse,
-      benefits,
-      nutritionalUse,
       categoryId,
       flavourId,
       sizeId,

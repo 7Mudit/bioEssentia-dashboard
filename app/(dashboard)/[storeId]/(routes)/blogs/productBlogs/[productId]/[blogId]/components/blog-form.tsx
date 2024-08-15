@@ -69,12 +69,6 @@ export const BlogForm: React.FC<BlogFormProps> = ({
     },
   });
 
-  const handleContentChange = (newContent: JSONContent) => {
-    setContent(newContent);
-    form.setValue("content", newContent);
-    setSaveStatus("Unsaved");
-  };
-
   const onSubmit = async (data: BlogFormValues) => {
     try {
       setLoading(true);

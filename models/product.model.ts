@@ -7,17 +7,14 @@ interface IProduct extends Document {
   price: number;
   slug: string;
   fakePrice: number;
-  description: string;
+  content: Record<string, any>; // JSON type
+  contentHTML: string;
   features: string[];
-  suggestedUse: string;
-  benefits: string;
-  nutritionalUse: string;
   isFeatured: boolean;
   isArchived: boolean;
   sizeId: Schema.Types.ObjectId[];
   flavourId: Schema.Types.ObjectId[];
   images: Schema.Types.ObjectId[];
-  orderItems: Schema.Types.ObjectId[];
   feedbacks: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -35,23 +32,20 @@ const productSchema = new Schema<IProduct>(
     price: { type: Number, required: true },
     fakePrice: { type: Number },
     slug: { type: String, required: true, unique: true },
-    description: { type: String, required: true },
+    content: { type: Schema.Types.Mixed }, // JSON type
     features: [{ type: String }],
-    suggestedUse: { type: String },
-    benefits: { type: String },
-    nutritionalUse: { type: String },
     isFeatured: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },
     sizeId: [{ type: Schema.Types.ObjectId, ref: "Size", required: true }],
+    contentHTML: { type: String }, // HTML content
     flavourId: [
       { type: Schema.Types.ObjectId, ref: "Flavour", required: true },
     ],
     images: [{ type: Schema.Types.ObjectId, ref: "Image" }],
-    orderItems: [{ type: Schema.Types.ObjectId, ref: "OrderItem" }],
     feedbacks: [{ type: Schema.Types.ObjectId, ref: "Feedback" }],
   },
   {
-    timestamps: true, // Automatically create `createdAt` and `updatedAt`
+    timestamps: true,
   }
 );
 
@@ -60,6 +54,7 @@ productSchema.index({ categoryId: 1 });
 productSchema.index({ sizeId: 1 });
 productSchema.index({ colorId: 1 });
 productSchema.index({ slug: 1 });
+
 const Product = models.Product || model("Product", productSchema);
 
 export default Product;

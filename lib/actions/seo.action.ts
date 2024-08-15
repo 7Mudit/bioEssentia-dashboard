@@ -15,10 +15,10 @@ interface SeoMetadataData {
   ogTitle: string;
   ogDescription: string;
   ogImage: string;
-  seoSchema: string;
+  seoSchema?: string;
   metaRobots: string;
   altTag: string;
-  schemaReview: string;
+  schemaReview?: string;
   keywords: string;
 }
 
@@ -28,6 +28,7 @@ export async function createSeoMetadata(data: SeoMetadataData) {
 
     const newSeoMetadata = new SeoMetadata({
       ...data,
+      slug: data.url.split("/").pop(),
     });
 
     const savedSeoMetadata = await newSeoMetadata.save();
@@ -42,7 +43,11 @@ export async function createSeoMetadata(data: SeoMetadataData) {
 export async function fetchAllSeoMetadata() {
   try {
     await connectToDb();
-    const seoMetadataList = await SeoMetadata.find().exec();
+    const seoMetadataList = await SeoMetadata.find({
+      storeId: "66585955a3fe976423095792",
+    }).exec();
+    console.log(seoMetadataList);
+
     return seoMetadataList;
   } catch (error) {
     console.error("Error fetching SEO metadata:", error);
@@ -90,9 +95,17 @@ export async function updateSeoMetadataById(
 ) {
   try {
     await connectToDb();
-    const updatedSeoMetadata = await SeoMetadata.findByIdAndUpdate(id, data, {
-      new: true,
-    }).exec();
+    const updatedData = {
+      ...data,
+      slug: data.url?.split("/").pop(), // Update the slug if URL changes
+    };
+    const updatedSeoMetadata = await SeoMetadata.findByIdAndUpdate(
+      id,
+      updatedData,
+      {
+        new: true,
+      }
+    ).exec();
 
     if (!updatedSeoMetadata) {
       throw new Error("SEO metadata not found for update");

@@ -21,11 +21,9 @@ export async function POST(
       name,
       price,
       fakePrice,
-      description,
+      contentHTML,
+      content,
       features,
-      suggestedUse,
-      benefits,
-      nutritionalUse,
       categoryId,
       flavourId,
       sizeId,
@@ -83,17 +81,18 @@ export async function POST(
       slug = `${slug}-${Date.now()}`;
     }
 
+    // Parse the content JSON
+    const parsedContent = JSON.parse(content);
+
     // Create the product
     const product = await Product.create({
       name,
       price,
       slug,
       fakePrice,
-      description,
+      content: parsedContent,
+      contentHTML,
       features,
-      suggestedUse,
-      benefits,
-      nutritionalUse,
       isFeatured,
       isArchived,
       categoryId,
@@ -101,7 +100,6 @@ export async function POST(
       sizeId,
       storeId: params.storeId,
     });
-
     // Create image documents with productId
     const imageDocs = await Promise.all(
       images.map((img: any) =>
