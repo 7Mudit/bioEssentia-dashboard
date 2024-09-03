@@ -9,7 +9,7 @@ import Product from "@/models/product.model";
 const ProductsPage = async ({ params }: { params: { storeId: string } }) => {
   const products = await Product.find({ storeId: params.storeId })
     .populate("categoryId")
-    .populate("sizeId")
+    .populate("sizes.sizeId")
     .populate("flavourId")
     .sort({ createdAt: -1 });
 

@@ -20,7 +20,7 @@ export async function GET(
     const product = await Product.findById(params.productId)
       .populate("images")
       .populate("categoryId")
-      .populate("sizeId")
+      .populate("sizes.sizeId")
       .populate("flavourId")
       .populate("feedbacks");
 
@@ -46,18 +46,16 @@ export async function DELETE(
       return new NextResponse("Product id is required", { status: 400 });
     }
 
-    // Verify store ownership
     const store = await Store.findOne({ _id: params.storeId, userId: userId });
     if (!store) {
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
-    // Attempt to delete the product
     const product = await Product.findByIdAndDelete(params.productId);
     if (!product) {
       return new NextResponse("Product not found", { status: 404 });
     }
-    // Remove the product ID from related Category, Flavour, Size documents
+
     await Category.findByIdAndUpdate(product.categoryId, {
       $pull: { products: product._id },
     });
@@ -69,8 +67,10 @@ export async function DELETE(
       )
     );
     await Promise.all(
-      product.sizeId.map((size: any) =>
-        Size.findByIdAndUpdate(size, { $pull: { products: product._id } })
+      product.sizes.map((size: any) =>
+        Size.findByIdAndUpdate(size.sizeId, {
+          $pull: { products: product._id },
+        })
       )
     );
     await Store.findByIdAndUpdate(params.storeId, {
@@ -97,7 +97,6 @@ export async function PATCH(
 
     const {
       name,
-      price,
       fakePrice,
       content,
       features,
@@ -105,7 +104,7 @@ export async function PATCH(
       contentHTML,
       images,
       flavourId,
-      sizeId,
+      sizes, // Updated to handle sizes array
       isFeatured,
       isArchived,
     } = body;
@@ -126,26 +125,27 @@ export async function PATCH(
       return new NextResponse("Images are required", { status: 400 });
     }
 
-    if (!price) {
-      return new NextResponse("Price is required", { status: 400 });
+    if (!sizes || !sizes.length) {
+      return new NextResponse("At least one size with price is required", {
+        status: 400,
+      });
     }
 
     if (!categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
     }
 
-    if (!flavourId) {
-      return new NextResponse("Flavour id is required", { status: 400 });
-    }
-
-    if (!sizeId) {
-      return new NextResponse("Size id is required", { status: 400 });
+    if (!flavourId || !flavourId.length) {
+      return new NextResponse("At least one flavour id is required", {
+        status: 400,
+      });
     }
 
     const store = await Store.findOne({ _id: params.storeId, userId: userId });
     if (!store) {
       return new NextResponse("Unauthorized", { status: 405 });
     }
+
     // Fetch the current product document
     const currentProduct = await Product.findById(params.productId);
 
@@ -176,7 +176,6 @@ export async function PATCH(
     // Update the product details
     await Product.findByIdAndUpdate(params.productId, {
       name,
-      price,
       slug,
       fakePrice,
       content: parsedContent,
@@ -184,7 +183,7 @@ export async function PATCH(
       features,
       categoryId,
       flavourId,
-      sizeId,
+      sizes, // Update sizes array
       isFeatured,
       isArchived,
       // Don't update images here; we'll handle them separately
@@ -202,11 +201,11 @@ export async function PATCH(
       });
     }
 
-    const newSizeIds = sizeId; // Assuming this is now an array of size IDs
-    if (currentProduct.sizeId) {
-      const sizesToRemove = currentProduct.sizeId.filter(
-        (id: any) => !newSizeIds.includes(id.toString())
-      );
+    const newSizeIds = sizes.map((size: any) => size.sizeId);
+    if (currentProduct.sizes) {
+      const sizesToRemove = currentProduct.sizes
+        .map((s: any) => s.sizeId.toString())
+        .filter((id: any) => !newSizeIds.includes(id));
       await Promise.all(
         sizesToRemove.map((sizeId: any) =>
           Size.findByIdAndUpdate(sizeId, {

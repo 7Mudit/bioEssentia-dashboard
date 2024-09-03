@@ -1,18 +1,22 @@
 import { models, model, Document, Schema } from "mongoose";
 
+interface ISizePricing {
+  sizeId: Schema.Types.ObjectId;
+  price: number;
+}
+
 interface IProduct extends Document {
   storeId: Schema.Types.ObjectId;
   categoryId: Schema.Types.ObjectId;
   name: string;
-  price: number;
   slug: string;
   fakePrice: number;
-  content: Record<string, any>; // JSON type
+  content: Record<string, any>;
   contentHTML: string;
   features: string[];
   isFeatured: boolean;
   isArchived: boolean;
-  sizeId: Schema.Types.ObjectId[];
+  sizes: ISizePricing[];
   flavourId: Schema.Types.ObjectId[];
   images: Schema.Types.ObjectId[];
   feedbacks: Schema.Types.ObjectId[];
@@ -29,15 +33,19 @@ const productSchema = new Schema<IProduct>(
       required: true,
     },
     name: { type: String, required: true },
-    price: { type: Number, required: true },
     fakePrice: { type: Number },
     slug: { type: String, required: true, unique: true },
-    content: { type: Schema.Types.Mixed }, // JSON type
+    content: { type: Schema.Types.Mixed },
+    contentHTML: { type: String },
     features: [{ type: String }],
     isFeatured: { type: Boolean, default: false },
     isArchived: { type: Boolean, default: false },
-    sizeId: [{ type: Schema.Types.ObjectId, ref: "Size", required: true }],
-    contentHTML: { type: String }, // HTML content
+    sizes: [
+      {
+        sizeId: { type: Schema.Types.ObjectId, ref: "Size", required: true },
+        price: { type: Number, required: true, default: 0 },
+      },
+    ],
     flavourId: [
       { type: Schema.Types.ObjectId, ref: "Flavour", required: true },
     ],
@@ -51,9 +59,8 @@ const productSchema = new Schema<IProduct>(
 
 productSchema.index({ storeId: 1 });
 productSchema.index({ categoryId: 1 });
-productSchema.index({ sizeId: 1 });
-productSchema.index({ colorId: 1 });
 productSchema.index({ slug: 1 });
+productSchema.index({ "sizes.sizeId": 1 });
 
 const Product = models.Product || model("Product", productSchema);
 

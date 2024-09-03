@@ -30,25 +30,8 @@ export const columns: ColumnDef<ProductColumn>[] = [
     header: "Featured",
   },
   {
-    accessorKey: "price",
-    header: "Price",
-  },
-  {
     accessorKey: "category",
     header: "Category",
-  },
-  {
-    accessorKey: "size",
-    header: "Size",
-    cell: ({ row }) => (
-      <div className="flex flex-col justify-center flex-wrap items-center gap-x-2">
-        {row.original.size.map((s: any, index: any) => (
-          <span key={index} className="text-sm">
-            {s.name}
-          </span>
-        ))}
-      </div>
-    ),
   },
   {
     accessorKey: "flavour",

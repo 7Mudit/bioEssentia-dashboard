@@ -37,14 +37,18 @@ import { EditorInstance, JSONContent } from "novel";
 const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
-  price: z.coerce.number().min(1),
   fakePrice: z.coerce.number().min(0).optional(),
   features: z.array(z.string()).optional(),
   content: z.any().optional(),
   contentHTML: z.string().optional(), // Add this line
   categoryId: z.string().min(1),
   flavourId: z.array(z.string()).min(1),
-  sizeId: z.array(z.string()).min(1),
+  sizes: z.array(
+    z.object({
+      sizeId: z.string(),
+      price: z.coerce.number().min(0),
+    })
+  ),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
 });
@@ -64,14 +68,13 @@ interface IProduct {
   storeId: string;
   categoryId: string;
   name: string;
-  price: number;
   fakePrice?: number;
   features?: string[];
   content?: JSONContent;
   contentHTML?: string;
   isFeatured: boolean;
   isArchived: boolean;
-  sizeId: string[];
+  sizes: { sizeId: string; price: number }[];
   flavourId: string[];
   images: string[];
   orderItems: string[];
@@ -141,14 +144,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const defaultValues = initialData
     ? {
         ...initialData,
-        price: parseFloat(String(initialData?.price)),
+        sizes: initialData?.sizes || [],
         fakePrice: parseFloat(String(initialData?.fakePrice || 0)),
         features: initialData?.features || [],
       }
     : {
         name: "",
         images: [],
-        price: 0,
+        sizes: sizes.map((size) => ({
+          sizeId: size._id,
+          price: 0,
+        })),
         fakePrice: 0,
         features: [],
         content: {},
@@ -293,24 +299,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      disabled={loading}
-                      placeholder="9.99"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <FormField
               control={form.control}
               name="fakePrice"
@@ -363,42 +352,60 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
             <FormField
               control={form.control}
-              name="sizeId"
+              name="sizes"
               render={() => (
                 <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  {sizes.map((item) => (
-                    <FormField
-                      key={item._id}
-                      control={form.control}
-                      name="sizeId"
-                      render={({ field }) => {
-                        return (
-                          <FormItem
-                            key={item._id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(item._id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item._id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item._id
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {item.name}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
+                  <FormLabel>Size & Price</FormLabel>
+                  {sizes.map((size) => (
+                    <div key={size._id} className="flex items-center space-x-4">
+                      <Checkbox
+                        checked={form
+                          .watch("sizes")
+                          .some((s) => s.sizeId === size._id)}
+                        onCheckedChange={(checked) => {
+                          const currentSizes = form.getValues("sizes") || [];
+                          if (checked) {
+                            form.setValue("sizes", [
+                              ...currentSizes,
+                              { sizeId: size._id, price: 0 },
+                            ]);
+                          } else {
+                            form.setValue(
+                              "sizes",
+                              currentSizes.filter((s) => s.sizeId !== size._id)
+                            );
+                          }
+                        }}
+                      />
+                      <span>{size.name}</span>
+                      {form
+                        .watch("sizes")
+                        .some((s) => s.sizeId === size._id) && (
+                        <Input
+                          type="number"
+                          placeholder="Price"
+                          value={
+                            form
+                              .watch("sizes")
+                              .find((s) => s.sizeId === size._id)?.price || 0
+                          }
+                          onChange={(e) =>
+                            form.setValue(
+                              "sizes",
+                              form
+                                .watch("sizes")
+                                .map((s) =>
+                                  s.sizeId === size._id
+                                    ? { ...s, price: Number(e.target.value) }
+                                    : s
+                                )
+                            )
+                          }
+                          disabled={loading}
+                          className="w-24"
+                        />
+                      )}
+                    </div>
                   ))}
                   <FormMessage />
                 </FormItem>

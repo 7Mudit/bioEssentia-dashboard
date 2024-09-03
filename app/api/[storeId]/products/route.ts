@@ -19,19 +19,17 @@ export async function POST(
 
     const {
       name,
-      price,
       fakePrice,
       contentHTML,
       content,
       features,
       categoryId,
       flavourId,
-      sizeId,
+      sizes,
       images,
       isFeatured,
       isArchived,
     } = body;
-
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
     }
@@ -44,10 +42,6 @@ export async function POST(
       return new NextResponse("Images are required", { status: 400 });
     }
 
-    if (!price) {
-      return new NextResponse("Price is required", { status: 400 });
-    }
-
     if (!categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
     }
@@ -56,8 +50,10 @@ export async function POST(
       return new NextResponse("Flavour id is required", { status: 400 });
     }
 
-    if (!sizeId) {
-      return new NextResponse("Size id is required", { status: 400 });
+    if (!sizes || !sizes.length) {
+      return new NextResponse("At least one size with price is required", {
+        status: 400,
+      });
     }
 
     if (!params.storeId) {
@@ -87,7 +83,6 @@ export async function POST(
     // Create the product
     const product = await Product.create({
       name,
-      price,
       slug,
       fakePrice,
       content: parsedContent,
@@ -97,7 +92,7 @@ export async function POST(
       isArchived,
       categoryId,
       flavourId,
-      sizeId,
+      sizes,
       storeId: params.storeId,
     });
     // Create image documents with productId
@@ -128,8 +123,10 @@ export async function POST(
       )
     );
     await Promise.all(
-      sizeId.map((size: any) =>
-        Size.findByIdAndUpdate(size, { $push: { products: product._id } })
+      sizes.map((size: any) =>
+        Size.findByIdAndUpdate(size.sizeId, {
+          $push: { products: product._id },
+        })
       )
     );
 
@@ -164,7 +161,9 @@ export async function GET(
 
     if (categoryId) query.categoryId = categoryId;
     if (flavourId) query.flavourId = flavourId;
-    if (sizeId) query.sizeId = sizeId;
+    if (sizeId) {
+      query["sizes.sizeId"] = sizeId;
+    }
     if (isFeatured !== null && isFeatured !== undefined) {
       query.isFeatured = isFeatured === "true";
     }
