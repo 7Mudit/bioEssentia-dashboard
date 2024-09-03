@@ -12,6 +12,7 @@ export interface IUser extends Document {
     quantity: number;
     flavor: string;
     size: string;
+    price: number;
   }[];
 }
 
@@ -28,6 +29,7 @@ const UserSchema = new Schema<IUser>({
       quantity: Number,
       flavor: String,
       size: String,
+      price: Number,
     },
   ],
 });

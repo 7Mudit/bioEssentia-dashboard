@@ -25,7 +25,7 @@ const CartHistoryPage = async ({
   const cartDetails = await Promise.all(
     user.cart.map(async (cartItem: any) => {
       const product = await Product.findById(cartItem.product).select(
-        "name price fakePrice"
+        "name fakePrice"
       );
       const images = await ImageModel.find({
         productId: cartItem.product,
@@ -36,8 +36,8 @@ const CartHistoryPage = async ({
         quantity: cartItem.quantity,
         flavor: cartItem.flavor,
         size: cartItem.size,
+        price: cartItem.price, // Use the price directly from the cart item
         productName: product ? product.name : "Unknown Product",
-        price: product ? product.price : 0,
         fakePrice: product ? product.fakePrice : 0,
         images: images.map((img) => img.url),
       };
