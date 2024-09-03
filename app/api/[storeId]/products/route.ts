@@ -172,7 +172,7 @@ export async function GET(
       .populate("images")
       .populate("categoryId")
       .populate("flavourId")
-      .populate("sizeId")
+      .populate("sizes.sizeId")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(products);
