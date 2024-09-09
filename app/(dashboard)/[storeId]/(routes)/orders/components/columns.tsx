@@ -8,9 +8,15 @@ export type OrderColumn = {
   status: string;
   createdAt: string;
   updatedAt: string;
+  orderNumber: number; // Add orderNumber field
 };
 
 export const columns: ColumnDef<OrderColumn>[] = [
+  {
+    accessorKey: "orderNumber",
+    header: "Order Number",
+    cell: ({ row }) => ` ${row.original.orderNumber}`,
+  },
   {
     accessorKey: "products",
     header: "Products",

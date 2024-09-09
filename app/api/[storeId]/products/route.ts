@@ -19,7 +19,6 @@ export async function POST(
 
     const {
       name,
-      fakePrice,
       contentHTML,
       content,
       features,
@@ -30,6 +29,7 @@ export async function POST(
       isFeatured,
       isArchived,
     } = body;
+
     if (!userId) {
       return new NextResponse("Unauthenticated", { status: 403 });
     }
@@ -51,16 +51,18 @@ export async function POST(
     }
 
     if (!sizes || !sizes.length) {
-      return new NextResponse("At least one size with price is required", {
-        status: 400,
-      });
+      return new NextResponse(
+        "At least one size with price and fakePrice is required",
+        {
+          status: 400,
+        }
+      );
     }
 
     if (!params.storeId) {
       return new NextResponse("Store id is required", { status: 400 });
     }
 
-    // Verify store ownership
     const storeByUserId = await Store.findOne({
       _id: params.storeId,
       userId: userId,
@@ -69,22 +71,18 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
-    // Generate slug from product name
     let slug = slugify(name, { lower: true, strict: true });
-    // Ensure the slug is unique
+
     const existingProduct = await Product.findOne({ slug });
     if (existingProduct) {
       slug = `${slug}-${Date.now()}`;
     }
 
-    // Parse the content JSON
     const parsedContent = JSON.parse(content);
 
-    // Create the product
     const product = await Product.create({
       name,
       slug,
-      fakePrice,
       content: parsedContent,
       contentHTML,
       features,
@@ -95,7 +93,7 @@ export async function POST(
       sizes,
       storeId: params.storeId,
     });
-    // Create image documents with productId
+
     const imageDocs = await Promise.all(
       images.map((img: any) =>
         Image.create({
@@ -105,12 +103,10 @@ export async function POST(
       )
     );
 
-    // Update the product with image IDs
     await Product.findByIdAndUpdate(product._id, {
       $push: { images: { $each: imageDocs.map((doc) => doc._id) } },
     });
 
-    // Push product ID to Store, Category, Flavours, and Sizes
     await Store.findByIdAndUpdate(params.storeId, {
       $push: { products: product._id },
     });
@@ -130,7 +126,6 @@ export async function POST(
       )
     );
 
-    // Optionally, refetch the product to include the updated images
     const updatedProduct = await Product.findById(product._id).populate(
       "images"
     );

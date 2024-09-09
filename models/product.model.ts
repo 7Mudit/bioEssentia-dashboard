@@ -3,6 +3,7 @@ import { models, model, Document, Schema } from "mongoose";
 interface ISizePricing {
   sizeId: Schema.Types.ObjectId;
   price: number;
+  fakePrice: number; // Added fakePrice for each size
 }
 
 interface IProduct extends Document {
@@ -10,13 +11,13 @@ interface IProduct extends Document {
   categoryId: Schema.Types.ObjectId;
   name: string;
   slug: string;
-  fakePrice: number;
+  fakePrice: number; // Overall fake price for the product
   content: Record<string, any>;
   contentHTML: string;
   features: string[];
   isFeatured: boolean;
   isArchived: boolean;
-  sizes: ISizePricing[];
+  sizes: ISizePricing[]; // Each size has its price and fake price
   flavourId: Schema.Types.ObjectId[];
   images: Schema.Types.ObjectId[];
   feedbacks: Schema.Types.ObjectId[];
@@ -33,7 +34,6 @@ const productSchema = new Schema<IProduct>(
       required: true,
     },
     name: { type: String, required: true },
-    fakePrice: { type: Number },
     slug: { type: String, required: true, unique: true },
     content: { type: Schema.Types.Mixed },
     contentHTML: { type: String },
@@ -44,6 +44,7 @@ const productSchema = new Schema<IProduct>(
       {
         sizeId: { type: Schema.Types.ObjectId, ref: "Size", required: true },
         price: { type: Number, required: true, default: 0 },
+        fakePrice: { type: Number, required: true, default: 0 }, // Added fakePrice for each size
       },
     ],
     flavourId: [
@@ -57,6 +58,7 @@ const productSchema = new Schema<IProduct>(
   }
 );
 
+// Indexing
 productSchema.index({ storeId: 1 });
 productSchema.index({ categoryId: 1 });
 productSchema.index({ slug: 1 });

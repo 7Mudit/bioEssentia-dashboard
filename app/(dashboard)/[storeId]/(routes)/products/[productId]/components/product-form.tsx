@@ -37,16 +37,16 @@ import { EditorInstance, JSONContent } from "novel";
 const formSchema = z.object({
   name: z.string().min(1),
   images: z.object({ url: z.string() }).array(),
-  fakePrice: z.coerce.number().min(0).optional(),
   features: z.array(z.string()).optional(),
   content: z.any().optional(),
-  contentHTML: z.string().optional(), // Add this line
+  contentHTML: z.string().optional(),
   categoryId: z.string().min(1),
   flavourId: z.array(z.string()).min(1),
   sizes: z.array(
     z.object({
       sizeId: z.string(),
       price: z.coerce.number().min(0),
+      fakePrice: z.coerce.number().min(0),
     })
   ),
   isFeatured: z.boolean().default(false).optional(),
@@ -54,6 +54,7 @@ const formSchema = z.object({
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
+
 interface ICategory {
   _id: string;
   storeId: string;
@@ -63,30 +64,31 @@ interface ICategory {
   createdAt: Date;
   updatedAt: Date;
 }
+
 interface IProduct {
   _id: string;
   storeId: string;
   categoryId: string;
   name: string;
-  fakePrice?: number;
   features?: string[];
   content?: JSONContent;
   contentHTML?: string;
   isFeatured: boolean;
   isArchived: boolean;
-  sizes: { sizeId: string; price: number }[];
+  sizes: { sizeId: string; price: number; fakePrice: number }[];
   flavourId: string[];
   images: string[];
   orderItems: string[];
   createdAt: Date;
   updatedAt: Date;
 }
+
 interface IFlavour {
   _id: string;
   storeId: string;
   name: string;
   value: string;
-  products: string[]; // Reference to Product documents
+  products: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -96,10 +98,11 @@ interface ISize {
   storeId: string;
   name: string;
   value: string;
-  products: string[]; // Reference to Product documents
+  products: string[];
   createdAt: Date;
   updatedAt: Date;
 }
+
 interface IImage {
   _id: string;
   productId: string;
@@ -145,7 +148,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     ? {
         ...initialData,
         sizes: initialData?.sizes || [],
-        fakePrice: parseFloat(String(initialData?.fakePrice || 0)),
         features: initialData?.features || [],
       }
     : {
@@ -154,14 +156,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         sizes: sizes.map((size) => ({
           sizeId: size._id,
           price: 0,
+          fakePrice: 0,
         })),
-        fakePrice: 0,
         features: [],
         content: {},
         categoryId: "",
-        contentHTML: "", // Add this line
+        contentHTML: "",
         flavourId: [],
-        sizeId: [],
         isFeatured: false,
         isArchived: false,
       };
@@ -299,25 +300,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="fakePrice"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fake Price</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      disabled={loading}
-                      placeholder="19.99"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="categoryId"
@@ -355,7 +337,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               name="sizes"
               render={() => (
                 <FormItem>
-                  <FormLabel>Size & Price</FormLabel>
+                  <FormLabel>Size, Price & Fake Price</FormLabel>
                   {sizes.map((size) => (
                     <div key={size._id} className="flex items-center space-x-4">
                       <Checkbox
@@ -367,7 +349,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                           if (checked) {
                             form.setValue("sizes", [
                               ...currentSizes,
-                              { sizeId: size._id, price: 0 },
+                              { sizeId: size._id, price: 0, fakePrice: 0 },
                             ]);
                           } else {
                             form.setValue(
@@ -381,29 +363,58 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       {form
                         .watch("sizes")
                         .some((s) => s.sizeId === size._id) && (
-                        <Input
-                          type="number"
-                          placeholder="Price"
-                          value={
-                            form
-                              .watch("sizes")
-                              .find((s) => s.sizeId === size._id)?.price || 0
-                          }
-                          onChange={(e) =>
-                            form.setValue(
-                              "sizes",
+                        <>
+                          <Input
+                            type="number"
+                            placeholder="Price"
+                            value={
                               form
                                 .watch("sizes")
-                                .map((s) =>
-                                  s.sizeId === size._id
-                                    ? { ...s, price: Number(e.target.value) }
-                                    : s
-                                )
-                            )
-                          }
-                          disabled={loading}
-                          className="w-24"
-                        />
+                                .find((s) => s.sizeId === size._id)?.price || 0
+                            }
+                            onChange={(e) =>
+                              form.setValue(
+                                "sizes",
+                                form
+                                  .watch("sizes")
+                                  .map((s) =>
+                                    s.sizeId === size._id
+                                      ? { ...s, price: Number(e.target.value) }
+                                      : s
+                                  )
+                              )
+                            }
+                            disabled={loading}
+                            className="w-24"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="Fake Price"
+                            value={
+                              form
+                                .watch("sizes")
+                                .find((s) => s.sizeId === size._id)
+                                ?.fakePrice || 0
+                            }
+                            onChange={(e) =>
+                              form.setValue(
+                                "sizes",
+                                form
+                                  .watch("sizes")
+                                  .map((s) =>
+                                    s.sizeId === size._id
+                                      ? {
+                                          ...s,
+                                          fakePrice: Number(e.target.value),
+                                        }
+                                      : s
+                                  )
+                              )
+                            }
+                            disabled={loading}
+                            className="w-24"
+                          />
+                        </>
                       )}
                     </div>
                   ))}
@@ -450,7 +461,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       }}
                     />
                   ))}
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -506,7 +516,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 ref={editorRef}
                 setSaveStatus={setSaveStatus}
                 blog={content as JSONContent}
-                // onChange={handleContentChange}
               />
             </FormControl>
             <FormMessage />

@@ -6,6 +6,7 @@ import Image from "@/models/image.model";
 import Address from "@/models/address.model";
 import User from "@/models/user.model";
 import Coupon from "@/models/coupon.model"; // Import the Coupon model
+import { Size } from "@/models";
 
 export async function fetchOrderById(orderId: string) {
   try {
@@ -15,7 +16,10 @@ export async function fetchOrderById(orderId: string) {
       .populate({
         path: "products.productId",
         model: Product,
-        populate: { path: "images", model: Image },
+        populate: [
+          { path: "images", model: Image },
+          { path: "sizes.sizeId", model: "Size" },
+        ],
       })
       .populate("coupon") // Populate the coupon details
       .exec();

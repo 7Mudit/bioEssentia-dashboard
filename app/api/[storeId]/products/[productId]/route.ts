@@ -97,14 +97,13 @@ export async function PATCH(
 
     const {
       name,
-      fakePrice,
       content,
       features,
       categoryId,
       contentHTML,
       images,
       flavourId,
-      sizes, // Updated to handle sizes array
+      sizes, // Handle sizes array with price and fakePrice
       isFeatured,
       isArchived,
     } = body;
@@ -126,9 +125,12 @@ export async function PATCH(
     }
 
     if (!sizes || !sizes.length) {
-      return new NextResponse("At least one size with price is required", {
-        status: 400,
-      });
+      return new NextResponse(
+        "At least one size with price and fakePrice is required",
+        {
+          status: 400,
+        }
+      );
     }
 
     if (!categoryId) {
@@ -177,13 +179,12 @@ export async function PATCH(
     await Product.findByIdAndUpdate(params.productId, {
       name,
       slug,
-      fakePrice,
       content: parsedContent,
       contentHTML,
       features,
       categoryId,
       flavourId,
-      sizes, // Update sizes array
+      sizes, // Update sizes array with both price and fakePrice
       isFeatured,
       isArchived,
       // Don't update images here; we'll handle them separately
